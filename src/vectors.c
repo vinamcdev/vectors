@@ -79,10 +79,16 @@ Result *vecmagnitude(Vector *vec) {
 
 Result *vecnormalize(Vector *vec) {
     if (!vec) return create_result(F_ALLOCATION, NULL, sizeof(NULL));
-    for (size_t i = 0; i < vec->dimensions; ++i) {
-        float data;
-        memcpy(&data, vecmagnitude(vec)->data, sizeof(float));
-        vec->data[i] /= data;
-    }
+
+    Result *magnitude_res = vecmagnitude(vec);
+    if (magnitude_res->type != S_SUCCESS) return magnitude_res;
+
+    float magnitude = *(float *)unwrap(magnitude_res);
+    if (magnitude == 0.0f) return create_result(F_ALLOCATION, NULL, sizeof(NULL));
+
+    for (size_t i = 0; i < vec->dimensions; ++i) vec->data[i] /= magnitude;
+
+    destroy_result(magnitude_res);
+
     return create_result(S_SUCCESS, NULL, sizeof(NULL));
 }
